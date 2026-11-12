@@ -1,5 +1,64 @@
 const { query } = require('../config/db');
 
+const ALL_TIME_SLOTS = [
+  'Morning fasting',
+  'After breakfast',
+  'After lunch',
+  'After dinner',
+];
+
+function computeSlotAnalysis(readings) {
+  const slotData = {};
+  for (const slot of ALL_TIME_SLOTS) {
+    slotData[slot] = {
+      slot,
+      count: 0,
+      lowest: null,
+      highest: null,
+      average: null,
+    };
+  }
+
+  const slotValues = {};
+  for (const r of readings) {
+    if (ALL_TIME_SLOTS.includes(r.time_slot)) {
+      if (!slotValues[r.time_slot]) {
+        slotValues[r.time_slot] = [];
+      }
+      slotValues[r.time_slot].push(r.glucose_value);
+    }
+  }
+
+  let highestAvg = -1;
+  let highestAverageSlot = null;
+
+  for (const slot of ALL_TIME_SLOTS) {
+    const vals = slotValues[slot];
+    if (vals && vals.length > 0) {
+      const min = Math.min(...vals);
+      const max = Math.max(...vals);
+      const sum = vals.reduce((a, b) => a + b, 0);
+      const avg = parseFloat((sum / vals.length).toFixed(1));
+      slotData[slot] = {
+        slot,
+        count: vals.length,
+        lowest: min,
+        highest: max,
+        average: avg,
+      };
+      if (avg > highestAvg) {
+        highestAvg = avg;
+        highestAverageSlot = slot;
+      }
+    }
+  }
+
+  return {
+    slots: slotData,
+    highestAverageSlot,
+  };
+}
+
 async function getDailyReportData({ userId, date }) {
   const summarySql = `
     SELECT 
@@ -45,6 +104,7 @@ async function getDailyReportData({ userId, date }) {
     lowest: summary.lowest !== null ? summary.lowest : null,
     highest: summary.highest !== null ? summary.highest : null,
     average: summary.average !== null ? summary.average : null,
+    slotAnalysis: computeSlotAnalysis(readings),
     readings,
   };
 }
@@ -125,6 +185,7 @@ async function getRangeReportData({ userId, startDate, endDate }) {
     lowest: summary.lowest !== null ? summary.lowest : null,
     highest: summary.highest !== null ? summary.highest : null,
     average: summary.average !== null ? summary.average : null,
+    slotAnalysis: computeSlotAnalysis(readings),
     dailyBreakdown,
   };
 }

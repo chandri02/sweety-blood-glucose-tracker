@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added - Phase 7: Charts, Data Visualization & Full Dashboard Integration (`feature/charts-and-visualization`)
+- **Backend Time-Slot Aggregation & Analysis**:
+  - Enhanced report repository (`report.repository.js`) with `computeSlotAnalysis()` providing slot-level reading counts, averages, observed ranges (min/max), and `highestAverageSlot` across Daily, MTD, Monthly, and Custom Range periods.
+  - Added 2 new backend integration tests in `server/tests/reports.test.js` asserting accurate slot analysis calculations and peak slot detection.
+- **Frontend Recharts Data Visualization Suite**:
+  - Integrated `recharts` library for responsive clinical charts.
+  - **`GlucoseTrendChart.jsx`**:
+    - Daily view: Chronological time slots on X-axis (`Morning fasting` -> `After dinner`), line connecting daily readings, custom dots color-coded by clinical category (Normal `#16a34a`, Elevated `#f59e0b`, High `#dc2626`, Low `#ef4444`). Missing slots handled gracefully without plotting misleading 0 values.
+    - Multi-day view (MTD, Monthly, Custom Range): Chronological dates on X-axis, primary daily average trend line, fluctuation spread band (`[lowest, highest]`). Days with zero readings cleanly omitted.
+    - Clinical Target Zones: Green reference band (70–140 mg/dL), amber reference line (140 mg/dL), red reference line (180 mg/dL), red dashed line (70 mg/dL).
+    - Clinical reference disclaimer note.
+  - **`TimeSlotComparisonChart.jsx`**:
+    - Categorical bar chart comparing glucose across the 4 clinical daily slots.
+    - Distinct highlighting and peak badge for the highest-average slot.
+    - Zero-reading slots handled without rendering misleading 0 mg/dL bars.
+    - Reference lines for Target Max (140 mg/dL) and High Threshold (180 mg/dL).
+  - **`ChartTooltip.jsx`**: Custom responsive tooltip displaying slot/date, glucose value, clinical reference status badge, and observed spreads.
+  - **`DashboardChartSection.jsx`**: Tabbed container switching between Glucose Trend and Time-Slot Comparison views, with a toggle for clinical target zones.
+- **Application Navigation Architecture**:
+  - Organized application into three main navigation views:
+    1. **Dashboard (`DashboardPage.jsx`)**: Comprehensive overview with reporting period selector, 4 summary metric cards (Total, Highest, Lowest, Weighted Average), chart visualization section, and recent readings logs.
+    2. **Reports (`ReportsPage.jsx`)**: Dedicated Phase 6 reporting view with detailed daily breakdown table and individual reading lists.
+    3. **Glucose Readings (`ReadingsPage.jsx`)**: Complete CRUD management interface with table view, clinical status badges, time-slot & date filtering, pagination, and live updates.
+  - Updated `Navbar.jsx` with active navigation tab pills and accessible aria attributes.
+- **Glucose Readings Management & Modals**:
+  - **`ReadingModal.jsx`**: Full modal for logging and editing readings with client-side validation, live clinical status preview, date boundaries (max today), time-slot selector, and server-side error feedback.
+  - **`DeleteConfirmModal.jsx`**: Secure confirmation dialog before deleting readings with preview details.
+  - **`RecentReadings.jsx`**: Dashboard quick table displaying the 5 latest entries, with quick triggers to log a reading or navigate to the complete readings page.
+  - Real-time cross-view data synchronization: reading mutations automatically refresh dashboard metrics and chart visualizers.
+- **Clinical Utility & Constants**:
+  - Centralized clinical logic in `client/src/utils/clinical.js` (`CLINICAL_THRESHOLDS`, `CLINICAL_COLORS`, `TIME_SLOTS`, `getGlucoseStatus`).
+- **Automated Frontend Testing**:
+  - Automated unit test suite (`client/tests/clinical.test.js`) with 11 tests verifying clinical threshold categorization, slot comparison missing-data handling, and chronological ordering.
+  - Updated client test script to run both unit tests and production Vite build.
+  - Monorepo test runner (`npm test`) executes all 97 automated tests (86 backend + 11 frontend) with 100% pass rate.
+
 ### Added - Phase 6: Complete Reporting Module (`feature/daily-reports`)
 - **Backend Reporting APIs**:
   - Daily Report endpoint (`GET /api/reports/daily?date=YYYY-MM-DD`): Single-date clinical statistics (min, max, 1-decimal rounded average, total count) and chronological reading list.

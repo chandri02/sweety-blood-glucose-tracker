@@ -6,19 +6,19 @@ import {
   getMonthlyReport,
   getCustomReport,
 } from '../api/reports.api';
+import { getReadings } from '../api/readings.api';
 import ReportControls from '../components/reports/ReportControls';
 import ReportSummaryCards from '../components/reports/ReportSummaryCards';
-import DailyReadingList from '../components/reports/DailyReadingList';
-import DailyBreakdownTable from '../components/reports/DailyBreakdownTable';
-import EmptyState from '../components/reports/EmptyState';
+import DashboardChartSection from '../components/charts/DashboardChartSection';
+import RecentReadings from '../components/dashboard/RecentReadings';
+import ReadingModal from '../components/readings/ReadingModal';
 
-export default function DashboardPage() {
+export default function DashboardPage({ onNavigateToReadings, refreshTrigger }) {
   const { user } = useAuth();
 
-  // Selected report type: 'daily' | 'month-to-date' | 'monthly' | 'custom'
-  const [reportType, setReportType] = useState('daily');
+  // Period selector state: 'daily' | 'month-to-date' | 'monthly' | 'custom'
+  const [reportType, setReportType] = useState('month-to-date');
 
-  // Input states
   const today = new Date().toISOString().split('T')[0];
   const [dailyDate, setDailyDate] = useState(today);
   const [mtdDate, setMtdDate] = useState(today);
@@ -27,18 +27,23 @@ export default function DashboardPage() {
   const [monthlyYear, setMonthlyYear] = useState(currentDate.getFullYear());
   const [monthlyMonth, setMonthlyMonth] = useState(currentDate.getMonth() + 1);
 
-  // Default custom range: last 14 days
   const fourteenDaysAgo = new Date();
   fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
   const [customStart, setCustomStart] = useState(fourteenDaysAgo.toISOString().split('T')[0]);
   const [customEnd, setCustomEnd] = useState(today);
 
-  // Report state
+  // Data states
   const [reportData, setReportData] = useState(null);
+  const [recentReadings, setRecentReadings] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [recentLoading, setRecentLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const fetchReport = useCallback(async () => {
+  // Quick Add Reading Modal
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
+  // Fetch report data for selected period
+  const fetchDashboardData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -54,7 +59,7 @@ export default function DashboardPage() {
       }
       setReportData(data);
     } catch (err) {
-      const msg = err.response?.data?.error?.message || 'Failed to load report. Please try again.';
+      const msg = err.response?.data?.error?.message || 'Failed to load dashboard metrics.';
       setError(msg);
       setReportData(null);
     } finally {
@@ -62,26 +67,55 @@ export default function DashboardPage() {
     }
   }, [reportType, dailyDate, mtdDate, monthlyYear, monthlyMonth, customStart, customEnd]);
 
-  // Re-fetch report when reportType or date parameters change
-  useEffect(() => {
-    fetchReport();
-  }, [fetchReport]);
+  // Fetch recent readings
+  const fetchRecentReadings = useCallback(async () => {
+    setRecentLoading(true);
+    try {
+      const data = await getReadings({ page: 1, limit: 5 });
+      setRecentReadings(data.readings || []);
+    } catch {
+      // Non-fatal for dashboard
+    } finally {
+      setRecentLoading(false);
+    }
+  }, []);
 
-  const hasData = reportData && reportData.totalReadings > 0;
+  useEffect(() => {
+    fetchDashboardData();
+  }, [fetchDashboardData, refreshTrigger]);
+
+  useEffect(() => {
+    fetchRecentReadings();
+  }, [fetchRecentReadings, refreshTrigger]);
+
+  function handleReadingSaved() {
+    fetchDashboardData();
+    fetchRecentReadings();
+  }
 
   return (
     <div className="dashboard-container">
-      {/* 1. Header greeting */}
+      {/* 1. Header Hero */}
       <section className="dashboard-hero">
         <div className="hero-content">
+          <div className="hero-badge">Clinical Health Overview</div>
           <h2 className="hero-title">Welcome back, {user?.name || 'Patient'}!</h2>
           <p className="hero-subtitle">
-            Track, analyze, and monitor your blood glucose trends across four comprehensive reporting views.
+            Monitor your glucose control, view dynamic trend visualizations, and analyze time-slot patterns in real time.
           </p>
+        </div>
+        <div className="hero-actions">
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={() => setIsAddModalOpen(true)}
+          >
+            + Log Reading
+          </button>
         </div>
       </section>
 
-      {/* 2. Report Type & Date Controls */}
+      {/* 2. Reporting Period Controls */}
       <section className="dashboard-controls-section">
         <ReportControls
           reportType={reportType}
@@ -98,7 +132,7 @@ export default function DashboardPage() {
           setCustomStart={setCustomStart}
           customEnd={customEnd}
           setCustomEnd={setCustomEnd}
-          onRefresh={fetchReport}
+          onRefresh={fetchDashboardData}
           loading={loading}
         />
       </section>
@@ -111,50 +145,36 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* 4. Loading indicator */}
-      {loading && (
-        <div className="loading-state" role="status" aria-live="polite">
-          <div className="spinner"></div>
-          <p>Calculating clinical metrics...</p>
-        </div>
-      )}
+      {/* 4. Dynamic Summary Cards (4 Cards) */}
+      <section className="dashboard-metrics-section">
+        <ReportSummaryCards reportData={reportData} />
+      </section>
 
-      {/* 5. Main Report View */}
-      {!loading && reportData && (
-        <main className="report-results-container">
-          {/* Summary Metric Cards */}
-          <ReportSummaryCards reportData={reportData} />
+      {/* 5. Chart Visualization Section (Trend & Slot Comparison) */}
+      <section className="dashboard-visualization-section">
+        <DashboardChartSection
+          reportType={reportType}
+          reportData={reportData}
+          loading={loading}
+        />
+      </section>
 
-          {/* Daily View: Individual readings or empty state */}
-          {reportType === 'daily' && (
-            hasData ? (
-              <DailyReadingList readings={reportData.readings} date={reportData.date} />
-            ) : (
-              <EmptyState message={`No glucose readings recorded for ${reportData.date}.`} />
-            )
-          )}
+      {/* 6. Recent Readings Section */}
+      <section className="dashboard-recent-section">
+        <RecentReadings
+          readings={recentReadings}
+          loading={recentLoading}
+          onOpenAddModal={() => setIsAddModalOpen(true)}
+          onNavigateToReadings={onNavigateToReadings}
+        />
+      </section>
 
-          {/* Range Views: Daily Breakdown or empty state */}
-          {reportType !== 'daily' && (
-            hasData ? (
-              <DailyBreakdownTable
-                dailyBreakdown={reportData.dailyBreakdown}
-                periodTitle={
-                  reportType === 'month-to-date'
-                    ? `From ${reportData.startDate} through ${reportData.endDate}`
-                    : reportType === 'monthly'
-                    ? `Full month of ${reportData.startDate} to ${reportData.endDate}`
-                    : `Custom range: ${reportData.startDate} to ${reportData.endDate}`
-                }
-              />
-            ) : (
-              <EmptyState
-                message={`No glucose readings found between ${reportData.startDate || 'start'} and ${reportData.endDate || 'end'}.`}
-              />
-            )
-          )}
-        </main>
-      )}
+      {/* Quick Add Reading Modal */}
+      <ReadingModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onSaved={handleReadingSaved}
+      />
     </div>
   );
 }

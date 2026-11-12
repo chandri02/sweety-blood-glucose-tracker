@@ -316,4 +316,41 @@ describe('Reports Module Integration Tests (Daily, MTD, Monthly, Custom)', () =>
     assert.strictEqual(user2DailyRes.body.average, 300.0);
     assert.strictEqual(user2DailyRes.body.totalReadings, 1);
   });
+
+  // --- 8. TIME-SLOT ANALYSIS ---
+  test('Slot Analysis: Daily report includes accurate slotAnalysis for all 4 slots', async () => {
+    const res = await request(app)
+      .get('/api/reports/daily?date=2026-11-01')
+      .set('Cookie', [sessionCookie1]);
+
+    assert.strictEqual(res.status, 200);
+    assert.ok(res.body.slotAnalysis, 'Daily report must include slotAnalysis');
+    assert.ok(res.body.slotAnalysis.slots['Morning fasting']);
+    assert.strictEqual(res.body.slotAnalysis.slots['Morning fasting'].average, 85);
+    assert.strictEqual(res.body.slotAnalysis.slots['After dinner'].average, 135);
+    assert.strictEqual(res.body.slotAnalysis.highestAverageSlot, 'After dinner');
+  });
+
+  test('Slot Analysis: Monthly report computes accurate slot averages and counts', async () => {
+    const res = await request(app)
+      .get('/api/reports/monthly?year=2026&month=10')
+      .set('Cookie', [sessionCookie1]);
+
+    assert.strictEqual(res.status, 200);
+    assert.ok(res.body.slotAnalysis, 'Monthly report must include slotAnalysis');
+    // User 1 has in Oct:
+    // Morning fasting: 90 (Oct 15), 100 (Oct 16) -> count: 2, avg: 95.0
+    // After breakfast: 130 (Oct 15) -> count: 1, avg: 130.0
+    // After lunch: 110 (Oct 15), 140 (Oct 16) -> count: 2, avg: 125.0
+    // After dinner: 0 readings -> count: 0, avg: null
+    const fasting = res.body.slotAnalysis.slots['Morning fasting'];
+    assert.strictEqual(fasting.count, 2);
+    assert.strictEqual(fasting.average, 95.0);
+
+    const dinner = res.body.slotAnalysis.slots['After dinner'];
+    assert.strictEqual(dinner.count, 0);
+    assert.strictEqual(dinner.average, null);
+
+    assert.strictEqual(res.body.slotAnalysis.highestAverageSlot, 'After breakfast');
+  });
 });
