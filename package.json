@@ -1,0 +1,27 @@
+{
+  "name": "sweety-blood-glucose-tracker",
+  "version": "1.0.0",
+  "description": "A secure, responsive full-stack blood glucose tracking application built with React, Node.js, Express, and PostgreSQL.",
+  "scripts": {
+    "start": "node server/src/server.js",
+    "server": "npm --prefix server run dev",
+    "client": "npm --prefix client run dev",
+    "dev": "concurrently \"npm --prefix server run dev\" \"npm --prefix client run dev\"",
+    "migrate": "npm --prefix server run migrate",
+    "seed": "npm --prefix server run seed",
+    "test:server": "npm --prefix server test",
+    "test:client": "npm --prefix client test",
+    "test": "npm run test:server && npm run test:client"
+  },
+  "keywords": [
+    "blood-glucose-tracker",
+    "health",
+    "react",
+    "express",
+    "postgresql",
+    "jwt",
+    "httponly-cookies"
+  ],
+  "author": "chandri02 <chandrikamp04@gmail.com>",
+  "license": "ISC"
+}
