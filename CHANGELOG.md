@@ -34,7 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Reading deletion endpoint (`DELETE /api/readings/:id`) with strict multi-tenant isolation.
 - Repository layer (`reading.repository.js`) utilizing parameterized queries, atomic transactions, and row-level locking.
 - Validation layer (`reading.validator.js`) ensuring valid calendar dates, UUID format, clinical value ranges, and time slot enum membership.
-- Comprehensive automated integration test suite (`server/tests/readings.test.js`) with 27 tests covering authentication guards, CSRF enforcement, validation matrix, CRUD operations, concurrency limits, pagination, and multi-tenant isolation.
+- Comprehensive automated integration test suite (`server/tests/readings.test.js`) with 28 tests covering authentication guards, CSRF enforcement, validation matrix, CRUD operations, concurrency limits, pagination, and multi-tenant isolation.
 
 ### Added - Phase 4: Secure Authentication & Authorization (`feature/secure-authentication`)
 - Secure registration (`POST /api/auth/register`) with input validation, password complexity enforcement, duplicate email check, and password hashing (`bcryptjs` 12 salt rounds).
