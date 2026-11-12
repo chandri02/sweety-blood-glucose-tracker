@@ -43,10 +43,21 @@ app.use(
   })
 );
 
+function getCookieSecret() {
+  const secret = process.env.COOKIE_SECRET;
+  if (!secret) {
+    if (['production', 'staging'].includes(process.env.NODE_ENV)) {
+      throw new Error('COOKIE_SECRET environment variable is strictly required in production and staging environments!');
+    }
+    return 'sweety_cookie_fallback_secret_dev_2026';
+  }
+  return secret;
+}
+
 // Parsers
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
-app.use(cookieParser(process.env.COOKIE_SECRET || 'sweety_cookie_fallback_secret'));
+app.use(cookieParser(getCookieSecret()));
 
 // Anti-CSRF protection across all state mutations
 app.use(csrfProtection);
@@ -66,5 +77,7 @@ app.use('/api/auth', authRoutes);
 // Fallback handlers
 app.use(notFoundHandler);
 app.use(errorHandler);
+
+app.getCookieSecret = getCookieSecret;
 
 module.exports = app;

@@ -9,8 +9,8 @@ const {
 function getJwtSecret() {
   const secret = process.env.JWT_SECRET;
   if (!secret) {
-    if (process.env.NODE_ENV === 'production') {
-      throw new Error('JWT_SECRET environment variable is missing in production!');
+    if (['production', 'staging'].includes(process.env.NODE_ENV)) {
+      throw new Error('JWT_SECRET environment variable is strictly required in production and staging environments!');
     }
     return 'sweety_dev_fallback_secret_min32characters_2026';
   }
@@ -46,6 +46,7 @@ function getSessionCookieOptions() {
 }
 
 module.exports = {
+  getJwtSecret,
   generateToken,
   verifyToken,
   getSessionCookieOptions,

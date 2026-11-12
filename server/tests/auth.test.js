@@ -389,4 +389,82 @@ describe('Authentication & Authorization Integration Tests', () => {
 
     assert.ok(hitRateLimit, 'Rate limiter must trigger HTTP 429 when max attempts are exceeded');
   });
+
+  // --- 9. PRODUCTION & STAGING SECRET GUARDS ---
+  test('Secret Guard: Missing COOKIE_SECRET throws in production and staging, but allows fallback in development', () => {
+    const originalEnv = process.env.NODE_ENV;
+    const originalSecret = process.env.COOKIE_SECRET;
+
+    try {
+      delete process.env.COOKIE_SECRET;
+
+      // In production -> must throw
+      process.env.NODE_ENV = 'production';
+      assert.throws(() => app.getCookieSecret(), /COOKIE_SECRET environment variable is strictly required/);
+
+      // In staging -> must throw
+      process.env.NODE_ENV = 'staging';
+      assert.throws(() => app.getCookieSecret(), /COOKIE_SECRET environment variable is strictly required/);
+
+      // In development -> must allow fallback
+      process.env.NODE_ENV = 'development';
+      const fallback = app.getCookieSecret();
+      assert.ok(fallback, 'Development mode should provide safe fallback for COOKIE_SECRET');
+    } finally {
+      process.env.NODE_ENV = originalEnv;
+      if (originalSecret !== undefined) process.env.COOKIE_SECRET = originalSecret;
+    }
+  });
+
+  test('Secret Guard: Missing JWT_SECRET throws in production and staging, but allows fallback in development', () => {
+    const { getJwtSecret } = require('../src/utils/token.util');
+    const originalEnv = process.env.NODE_ENV;
+    const originalSecret = process.env.JWT_SECRET;
+
+    try {
+      delete process.env.JWT_SECRET;
+
+      // In production -> must throw
+      process.env.NODE_ENV = 'production';
+      assert.throws(() => getJwtSecret(), /JWT_SECRET environment variable is strictly required/);
+
+      // In staging -> must throw
+      process.env.NODE_ENV = 'staging';
+      assert.throws(() => getJwtSecret(), /JWT_SECRET environment variable is strictly required/);
+
+      // In development -> must allow fallback
+      process.env.NODE_ENV = 'development';
+      const fallback = getJwtSecret();
+      assert.ok(fallback, 'Development mode should provide safe fallback for JWT_SECRET');
+    } finally {
+      process.env.NODE_ENV = originalEnv;
+      if (originalSecret !== undefined) process.env.JWT_SECRET = originalSecret;
+    }
+  });
+
+  test('Secret Guard: Missing CSRF_SECRET throws in production and staging, but allows fallback in development', () => {
+    const { getCsrfSecret } = require('../src/utils/csrf.util');
+    const originalEnv = process.env.NODE_ENV;
+    const originalSecret = process.env.CSRF_SECRET;
+
+    try {
+      delete process.env.CSRF_SECRET;
+
+      // In production -> must throw
+      process.env.NODE_ENV = 'production';
+      assert.throws(() => getCsrfSecret(), /CSRF_SECRET environment variable is strictly required/);
+
+      // In staging -> must throw
+      process.env.NODE_ENV = 'staging';
+      assert.throws(() => getCsrfSecret(), /CSRF_SECRET environment variable is strictly required/);
+
+      // In development -> must allow fallback
+      process.env.NODE_ENV = 'development';
+      const fallback = getCsrfSecret();
+      assert.ok(fallback, 'Development mode should provide safe fallback for CSRF_SECRET');
+    } finally {
+      process.env.NODE_ENV = originalEnv;
+      if (originalSecret !== undefined) process.env.CSRF_SECRET = originalSecret;
+    }
+  });
 });

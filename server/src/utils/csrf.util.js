@@ -4,8 +4,8 @@ const { CSRF_COOKIE_NAME, SESSION_EXPIRY_MS } = require('../constants/auth.const
 function getCsrfSecret() {
   const secret = process.env.CSRF_SECRET;
   if (!secret) {
-    if (process.env.NODE_ENV === 'production') {
-      throw new Error('CSRF_SECRET environment variable is strictly required in production!');
+    if (['production', 'staging'].includes(process.env.NODE_ENV)) {
+      throw new Error('CSRF_SECRET environment variable is strictly required in production and staging environments!');
     }
     return 'sweety_dev_fallback_csrf_secret_min32chars_2026';
   }
