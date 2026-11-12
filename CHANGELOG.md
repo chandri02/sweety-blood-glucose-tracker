@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added - Phase 4: Secure Authentication & Authorization (`feature/secure-authentication`)
+- Secure registration (`POST /api/auth/register`) with input validation, password complexity enforcement, duplicate email check, and password hashing (`bcryptjs` 12 salt rounds).
+- Secure login (`POST /api/auth/login`) with credential verification and brute-force rate limiting (`express-rate-limit`).
+- Secure logout (`POST /api/auth/logout`) with cookie clearing and server-side token invalidation via `token_version`.
+- Current user profile endpoint (`GET /api/auth/me`) requiring valid session cookie.
+- Anti-CSRF token issuance (`GET /api/auth/csrf-token`) and double-submit validation middleware (`csrfProtection`).
+- Secure session storage via signed, HttpOnly, SameSite, Secure cookies (`sweety_session`).
+- Migration `003_add_user_token_version.sql` to support server-side token revocation without external session stores.
+- Centralized error handling (`error.middleware.js`) and 404 handler (`notFoundHandler`) preventing credential and stack trace leakage.
+- Security headers with Helmet and CORS configuration for client origin and credentials.
+- Automated integration test suite (`server/tests/auth.test.js`) with 14 tests covering registration, login, logout, session verification, tampered token rejection, and CSRF enforcement.
+
 ### Added - Phase 3: PostgreSQL Database Schema & Migration Architecture
 - Dedicated PostgreSQL database initialization script (`server/database/create-db.js`) creating `blood_glucose_tracker_db`.
 - Migration engine (`server/database/migrate.js`) with transactional up/down execution and `schema_migrations` tracking.
