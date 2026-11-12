@@ -1,5 +1,15 @@
 import apiClient, { fetchCsrfToken, setCsrfToken } from './client';
 
+export async function register({ name, email, password, confirmPassword }) {
+  // Ensure fresh CSRF token before register
+  await fetchCsrfToken();
+  const res = await apiClient.post('/auth/register', { name, email, password, confirmPassword });
+  if (res.data?.csrfToken) {
+    setCsrfToken(res.data.csrfToken);
+  }
+  return res.data;
+}
+
 export async function login({ email, password }) {
   // Ensure fresh CSRF token before login
   await fetchCsrfToken();

@@ -51,7 +51,7 @@ function validatePasswordStrength(password) {
 }
 
 function validateRegisterPayload(req, res, next) {
-  const { name, email, password } = req.body || {};
+  const { name, email, password, confirmPassword } = req.body || {};
 
   const errors = [];
 
@@ -69,6 +69,10 @@ function validateRegisterPayload(req, res, next) {
   const passwordError = validatePasswordStrength(password);
   if (passwordError) {
     errors.push(passwordError);
+  }
+
+  if (confirmPassword !== undefined && password !== confirmPassword) {
+    errors.push('Password and Confirm Password do not match');
   }
 
   if (errors.length > 0) {

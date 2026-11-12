@@ -180,6 +180,23 @@ describe('Authentication & Authorization Integration Tests', () => {
     }
   });
 
+  test('Validation: Rejects password and confirmPassword mismatch with 400', async () => {
+    const res = await request(app)
+      .post('/api/auth/register')
+      .set('Cookie', [csrfCookie])
+      .set('X-CSRF-Token', csrfToken)
+      .send({
+        name: 'Mismatch User',
+        email: 'mismatch.pass@test.local',
+        password: 'ValidPassword123!',
+        confirmPassword: 'DifferentPassword999!',
+      });
+
+    assert.strictEqual(res.status, 400);
+    assert.strictEqual(res.body.error.code, 'VALIDATION_ERROR');
+    assert.ok(res.body.error.details.includes('Password and Confirm Password do not match'));
+  });
+
   // --- 5. REGISTRATION & LOGIN LIFECYCLE ---
   test('POST /api/auth/register should succeed with valid credentials and return 201', async () => {
     const res = await request(app)
@@ -228,6 +245,16 @@ describe('Authentication & Authorization Integration Tests', () => {
     assert.strictEqual(res.body.user.email, testUser.email);
     assert.strictEqual(res.body.user.name, testUser.name);
     assert.strictEqual(res.body.user.password_hash, undefined);
+  });
+
+  test('Multi-User Isolation: Newly registered user starts with 0 readings, not demo readings', async () => {
+    const res = await request(app)
+      .get('/api/readings')
+      .set('Cookie', [sessionCookie]);
+
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.body.totalCount, 0);
+    assert.strictEqual(res.body.readings.length, 0);
   });
 
   test('GET /api/auth/me should return 401 Unauthorized when session cookie is missing', async () => {

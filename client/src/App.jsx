@@ -25,7 +25,12 @@ function MainContent() {
   }
 
   if (!isAuthenticated) {
-    return <LoginPage />;
+    return (
+      <>
+        <LoginPage />
+        <ToastContainer />
+      </>
+    );
   }
 
   function handleDataMutated() {
