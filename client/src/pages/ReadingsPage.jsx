@@ -1,10 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useToast } from '../context/ToastContext';
 import { getReadings } from '../api/readings.api';
 import { TIME_SLOTS, getGlucoseStatus } from '../utils/clinical';
 import ReadingModal from '../components/readings/ReadingModal';
 import DeleteConfirmModal from '../components/readings/DeleteConfirmModal';
+import { SkeletonTable } from '../components/common/Skeleton';
 
 export default function ReadingsPage({ onDataMutated }) {
+  const toast = useToast();
   const [readings, setReadings] = useState([]);
   const [pagination, setPagination] = useState({
     page: 1,
@@ -24,7 +27,6 @@ export default function ReadingsPage({ onDataMutated }) {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editingReading, setEditingReading] = useState(null);
   const [deletingReading, setDeletingReading] = useState(null);
-  const [toastMessage, setToastMessage] = useState(null);
 
   const fetchReadings = useCallback(async (page = 1) => {
     setLoading(true);
@@ -47,29 +49,26 @@ export default function ReadingsPage({ onDataMutated }) {
         totalPages: 1,
       });
     } catch (err) {
-      setError(err.response?.data?.error?.message || 'Failed to fetch glucose readings');
+      const msg = err.response?.data?.error?.message || 'Failed to fetch glucose readings';
+      setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
-  }, [slotFilter, startDate, endDate]);
+  }, [slotFilter, startDate, endDate, toast]);
 
   useEffect(() => {
     fetchReadings(1);
   }, [fetchReadings]);
 
-  function showToast(msg) {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3500);
-  }
-
   function handleSaved(savedReading) {
-    showToast(editingReading ? 'Reading updated successfully.' : 'New reading recorded successfully.');
+    toast.success(editingReading ? 'Reading updated successfully.' : 'New reading recorded successfully.');
     fetchReadings(pagination.page);
     if (onDataMutated) onDataMutated();
   }
 
   function handleDeleted(deletedId) {
-    showToast('Reading deleted successfully.');
+    toast.success('Reading deleted successfully.');
     fetchReadings(pagination.page);
     if (onDataMutated) onDataMutated();
   }
@@ -98,13 +97,6 @@ export default function ReadingsPage({ onDataMutated }) {
           <span aria-hidden="true">+</span> Log New Reading
         </button>
       </div>
-
-      {/* Toast Alert */}
-      {toastMessage && (
-        <div className="alert alert-success" role="alert">
-          <span aria-hidden="true">✓</span> {toastMessage}
-        </div>
-      )}
 
       {/* Filter Controls Bar */}
       <div className="readings-filters-card">
@@ -168,18 +160,27 @@ export default function ReadingsPage({ onDataMutated }) {
         </div>
       </div>
 
-      {/* Error state */}
+      {/* Error Alert with Retry */}
       {error && (
         <div className="alert alert-error" role="alert">
-          <span aria-hidden="true">⚠️</span> {error}
+          <div className="alert-content-row">
+            <span aria-hidden="true">⚠️</span>
+            <span>{error}</span>
+          </div>
+          <button
+            type="button"
+            className="btn btn-outline btn-xs"
+            onClick={() => fetchReadings(pagination.page)}
+          >
+            Try Again
+          </button>
         </div>
       )}
 
-      {/* Main Table / State */}
+      {/* Main Table / Skeletons / Empty State */}
       {loading ? (
-        <div className="loading-state">
-          <div className="spinner"></div>
-          <p>Loading glucose readings...</p>
+        <div className="readings-table-card">
+          <SkeletonTable rows={5} />
         </div>
       ) : readings.length === 0 ? (
         <div className="empty-readings-box">

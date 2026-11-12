@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import {
   getDailyReport,
   getMonthToDateReport,
@@ -12,9 +13,11 @@ import ReportSummaryCards from '../components/reports/ReportSummaryCards';
 import DashboardChartSection from '../components/charts/DashboardChartSection';
 import RecentReadings from '../components/dashboard/RecentReadings';
 import ReadingModal from '../components/readings/ReadingModal';
+import { SkeletonCardsGrid } from '../components/common/Skeleton';
 
 export default function DashboardPage({ onNavigateToReadings, refreshTrigger }) {
   const { user } = useAuth();
+  const toast = useToast();
 
   // Period selector state: 'daily' | 'month-to-date' | 'monthly' | 'custom'
   const [reportType, setReportType] = useState('month-to-date');
@@ -62,10 +65,11 @@ export default function DashboardPage({ onNavigateToReadings, refreshTrigger }) 
       const msg = err.response?.data?.error?.message || 'Failed to load dashboard metrics.';
       setError(msg);
       setReportData(null);
+      toast.error(msg, 'Metrics Error');
     } finally {
       setLoading(false);
     }
-  }, [reportType, dailyDate, mtdDate, monthlyYear, monthlyMonth, customStart, customEnd]);
+  }, [reportType, dailyDate, mtdDate, monthlyYear, monthlyMonth, customStart, customEnd, toast]);
 
   // Fetch recent readings
   const fetchRecentReadings = useCallback(async () => {
@@ -89,6 +93,7 @@ export default function DashboardPage({ onNavigateToReadings, refreshTrigger }) 
   }, [fetchRecentReadings, refreshTrigger]);
 
   function handleReadingSaved() {
+    toast.success('Reading logged and dashboard metrics updated.');
     fetchDashboardData();
     fetchRecentReadings();
   }
@@ -137,17 +142,30 @@ export default function DashboardPage({ onNavigateToReadings, refreshTrigger }) 
         />
       </section>
 
-      {/* 3. Error Alert */}
+      {/* 3. Error Alert with Retry */}
       {error && (
         <div className="alert alert-error" role="alert">
-          <span className="alert-icon" aria-hidden="true">⚠️</span>
-          <span>{error}</span>
+          <div className="alert-content-row">
+            <span className="alert-icon" aria-hidden="true">⚠️</span>
+            <span>{error}</span>
+          </div>
+          <button
+            type="button"
+            className="btn btn-outline btn-xs"
+            onClick={fetchDashboardData}
+          >
+            Try Again
+          </button>
         </div>
       )}
 
       {/* 4. Dynamic Summary Cards (4 Cards) */}
       <section className="dashboard-metrics-section">
-        <ReportSummaryCards reportData={reportData} />
+        {loading ? (
+          <SkeletonCardsGrid />
+        ) : (
+          <ReportSummaryCards reportData={reportData} />
+        )}
       </section>
 
       {/* 5. Chart Visualization Section (Trend & Slot Comparison) */}
@@ -156,6 +174,7 @@ export default function DashboardPage({ onNavigateToReadings, refreshTrigger }) 
           reportType={reportType}
           reportData={reportData}
           loading={loading}
+          onOpenAddModal={() => setIsAddModalOpen(true)}
         />
       </section>
 

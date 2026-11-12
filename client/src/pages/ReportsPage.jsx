@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import {
   getDailyReport,
   getMonthToDateReport,
@@ -11,9 +12,11 @@ import ReportSummaryCards from '../components/reports/ReportSummaryCards';
 import DailyReadingList from '../components/reports/DailyReadingList';
 import DailyBreakdownTable from '../components/reports/DailyBreakdownTable';
 import EmptyState from '../components/reports/EmptyState';
+import { SkeletonCardsGrid } from '../components/common/Skeleton';
 
 export default function ReportsPage() {
   const { user } = useAuth();
+  const toast = useToast();
 
   // Selected report type: 'daily' | 'month-to-date' | 'monthly' | 'custom'
   const [reportType, setReportType] = useState('daily');
@@ -57,10 +60,11 @@ export default function ReportsPage() {
       const msg = err.response?.data?.error?.message || 'Failed to load report. Please try again.';
       setError(msg);
       setReportData(null);
+      toast.error(msg, 'Report Error');
     } finally {
       setLoading(false);
     }
-  }, [reportType, dailyDate, mtdDate, monthlyYear, monthlyMonth, customStart, customEnd]);
+  }, [reportType, dailyDate, mtdDate, monthlyYear, monthlyMonth, customStart, customEnd, toast]);
 
   useEffect(() => {
     fetchReport();
@@ -102,24 +106,29 @@ export default function ReportsPage() {
         />
       </section>
 
-      {/* 3. Error Alert */}
+      {/* 3. Error Alert with Retry */}
       {error && (
         <div className="alert alert-error" role="alert">
-          <span className="alert-icon" aria-hidden="true">⚠️</span>
-          <span>{error}</span>
+          <div className="alert-content-row">
+            <span className="alert-icon" aria-hidden="true">⚠️</span>
+            <span>{error}</span>
+          </div>
+          <button
+            type="button"
+            className="btn btn-outline btn-xs"
+            onClick={fetchReport}
+          >
+            Try Again
+          </button>
         </div>
       )}
 
-      {/* 4. Loading indicator */}
-      {loading && (
-        <div className="loading-state" role="status" aria-live="polite">
-          <div className="spinner"></div>
-          <p>Calculating clinical metrics...</p>
-        </div>
-      )}
-
-      {/* 5. Main Report View */}
-      {!loading && reportData && (
+      {/* 4. Loading Skeleton or Main Report View */}
+      {loading ? (
+        <main className="report-results-container">
+          <SkeletonCardsGrid />
+        </main>
+      ) : reportData ? (
         <main className="report-results-container">
           {/* Summary Metric Cards */}
           <ReportSummaryCards reportData={reportData} />
@@ -153,7 +162,7 @@ export default function ReportsPage() {
             )
           )}
         </main>
-      )}
+      ) : null}
     </div>
   );
 }

@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ToastProvider } from './context/ToastContext';
+import ToastContainer from './components/common/ToastContainer';
+import ErrorBoundary from './components/common/ErrorBoundary';
 import Navbar from './components/layout/Navbar';
 import DashboardPage from './pages/DashboardPage';
 import ReportsPage from './pages/ReportsPage';
@@ -33,25 +36,32 @@ function MainContent() {
     <div className="app-layout">
       <Navbar activeTab={activeTab} onTabChange={setActiveTab} />
       <main className="app-main-content">
-        {activeTab === 'dashboard' && (
-          <DashboardPage
-            onNavigateToReadings={() => setActiveTab('readings')}
-            refreshTrigger={refreshTrigger}
-          />
-        )}
-        {activeTab === 'reports' && <ReportsPage />}
-        {activeTab === 'readings' && (
-          <ReadingsPage onDataMutated={handleDataMutated} />
-        )}
+        <ErrorBoundary onReset={() => setRefreshTrigger((prev) => prev + 1)}>
+          {activeTab === 'dashboard' && (
+            <DashboardPage
+              onNavigateToReadings={() => setActiveTab('readings')}
+              refreshTrigger={refreshTrigger}
+            />
+          )}
+          {activeTab === 'reports' && <ReportsPage />}
+          {activeTab === 'readings' && (
+            <ReadingsPage onDataMutated={handleDataMutated} />
+          )}
+        </ErrorBoundary>
       </main>
+      <ToastContainer />
     </div>
   );
 }
 
 export default function App() {
   return (
-    <AuthProvider>
-      <MainContent />
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <ToastProvider>
+          <MainContent />
+        </ToastProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
