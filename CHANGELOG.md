@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed - UI Refinement: Sign In Page Demo Credentials Removal (`main`)
+- **Demo Credentials Section Removal**:
+  - Completely removed the demo credentials card and badge from `LoginPage.jsx` without leftover DOM containers or empty placeholders.
+  - Initialized login email and password inputs to clean empty strings, allowing native input placeholders (`patient@example.com` and `••••••••••••`) to display properly.
+  - Removed obsolete `.demo-credentials-callout` and `.demo-badge` CSS rules from `reports.css`.
+  - Refined `.auth-toggle-box` spacing and added mobile-specific `.login-card` padding for responsive visual balance across mobile, tablet, and desktop viewports.
+  - Preserved backend demo credentials (`demo@sweetyapp.local` / `DemoPassword123!`), database records, and authentication APIs.
+
 ### Added - Feature: Multi-User Registration & Authentication (`main`)
 - **Frontend Registration Interface**:
   - Interactive mode switching on `LoginPage.jsx` between "Sign In" and "Create Account".

@@ -9,8 +9,8 @@ export default function LoginPage() {
   const [mode, setMode] = useState('login'); // 'login' | 'register'
 
   // Login form state
-  const [loginEmail, setLoginEmail] = useState('demo@sweetyapp.local');
-  const [loginPassword, setLoginPassword] = useState('DemoPassword123!');
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
 
   // Register form state
   const [regName, setRegName] = useState('');
@@ -25,7 +25,7 @@ export default function LoginPage() {
     setErrorMsg('');
     if (newMode === 'login' && regEmail) {
       setLoginEmail(regEmail);
-    } else if (newMode === 'register' && loginEmail && loginEmail !== 'demo@sweetyapp.local') {
+    } else if (newMode === 'register' && loginEmail) {
       setRegEmail(loginEmail);
     }
     setMode(newMode);
@@ -187,12 +187,6 @@ export default function LoginPage() {
               >
                 Create an Account
               </button>
-            </div>
-
-            <div className="demo-credentials-callout">
-              <span className="demo-badge">Demo Account</span>
-              <p>Email: <code>demo@sweetyapp.local</code></p>
-              <p>Password: <code>DemoPassword123!</code></p>
             </div>
           </>
         ) : (
