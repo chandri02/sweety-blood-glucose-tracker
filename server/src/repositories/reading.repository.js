@@ -153,12 +153,20 @@ async function updateReading({ id, userId, readingDate, timeSlot, glucoseValue }
 
     const existing = existingRes.rows[0];
 
-    // 2. If reading_date changed, enforce daily limit of 4 on target date
+    // 2. Concurrency advisory locking & daily limit checks
     if (existing.reading_date !== readingDate) {
+      // Date is changing: lock both old and target dates in deterministic sorted order to prevent deadlocks
+      const [firstDate, secondDate] = [existing.reading_date, readingDate].sort();
       await client.query(
         "SELECT pg_advisory_xact_lock(hashtext('reading_limit:' || $1::text || ':' || $2::text));",
-        [userId, readingDate]
+        [userId, firstDate]
       );
+      await client.query(
+        "SELECT pg_advisory_xact_lock(hashtext('reading_limit:' || $1::text || ':' || $2::text));",
+        [userId, secondDate]
+      );
+
+      // Enforce daily limit of 4 on target date
       const countRes = await client.query(
         'SELECT COUNT(*) FROM readings WHERE user_id = $1 AND reading_date = $2;',
         [userId, readingDate]
@@ -170,6 +178,12 @@ async function updateReading({ id, userId, readingDate, timeSlot, glucoseValue }
         error.code = 'DAILY_LIMIT_EXCEEDED';
         throw error;
       }
+    } else {
+      // Date is unchanged: lock current date to serialize concurrent slot/value modifications
+      await client.query(
+        "SELECT pg_advisory_xact_lock(hashtext('reading_limit:' || $1::text || ':' || $2::text));",
+        [userId, readingDate]
+      );
     }
 
     // 3. Update row

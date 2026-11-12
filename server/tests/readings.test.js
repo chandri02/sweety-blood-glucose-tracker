@@ -458,6 +458,14 @@ describe('Glucose Reading Management (CRUD) Integration Tests', () => {
     assert.strictEqual(res.body.error.code, 'NOT_FOUND');
   });
 
+  test('Timezone: getTodayString formats correctly for specified timezone', () => {
+    const { getTodayString } = require('../src/validators/reading.validator');
+    const kolkataDate = getTodayString('Asia/Kolkata');
+    assert.match(kolkataDate, /^\d{4}-\d{2}-\d{2}$/);
+    const utcDate = getTodayString('UTC');
+    assert.match(utcDate, /^\d{4}-\d{2}-\d{2}$/);
+  });
+
   // --- 8. DELETE READING (DELETE /api/readings/:id) ---
   test('Multi-tenant Isolation: User 2 cannot delete User 1 reading (returns 404)', async () => {
     const res = await request(app)
