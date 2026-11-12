@@ -5,8 +5,7 @@ services:
     plan: free
     region: oregon
     buildCommand: npm install && npm run build
-    preDeployCommand: npm run migrate
-    startCommand: npm start
+    startCommand: npm run migrate && npm start
     envVars:
       - key: NODE_ENV
         value: production
