@@ -2,7 +2,7 @@
 
 A professional, secure, full-stack blood glucose tracking and reporting web application designed for multi-user management, clinical range validation, interactive visualization, and comprehensive statistical analysis.
 
-[![Tests](https://img.shields.io/badge/tests-117%20passing-brightgreen.svg)](#testing)
+[![Tests](https://img.shields.io/badge/tests-119%20passing-brightgreen.svg)](#testing-suite)
 [![Node](https://img.shields.io/badge/node-%3E%3D20.0.0-blue.svg)](https://nodejs.org)
 [![PostgreSQL](https://img.shields.io/badge/postgresql-%3E%3D14-blue.svg)](https://www.postgresql.org)
 [![License](https://img.shields.io/badge/license-ISC-green.svg)](LICENSE)
@@ -19,6 +19,7 @@ A professional, secure, full-stack blood glucose tracking and reporting web appl
 - [Production Deployment Guide](#production-deployment-guide)
 - [API Reference](#api-reference)
 - [Security Architecture](#security-architecture)
+- [Notes](#notes)
 - [License](#license)
 
 ---
@@ -75,7 +76,7 @@ A professional, secure, full-stack blood glucose tracking and reporting web appl
                │ Advisory Locks (Transactions)│
 ┌──────────────▼──────────────────────────────┴───────────────┐
 │                    PostgreSQL 14+                           │
-│  Tables: users, readings, token_versions, schema_migrations │
+│  Tables: users (token_version), readings, schema_migrations │
 │  UUID PKs · Advisory Locking · Multi-tenant Isolation       │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -132,22 +133,42 @@ sweety-blood-glucose-tracker/
 
 ## Quickstart & Local Setup
 
-### 1. Prerequisites
+### 1. Clone the Repository
+```bash
+git clone https://github.com/chandri02/sweety-blood-glucose-tracker.git
+cd sweety-blood-glucose-tracker
+```
+
+### 2. Prerequisites
 - **Node.js**: `v20.0.0` or later
 - **PostgreSQL**: `14.0` or later
 - **Git**
 
-### 2. Environment Configuration
+### 3. Install Dependencies
+```bash
+# Install all dependencies (root, backend, and frontend) in one command:
+npm run install:all
+
+# Or install each package separately:
+npm --prefix server install
+npm --prefix client install
+```
+
+### 4. Environment Configuration
 Copy `.env.example` to `.env`:
 ```bash
+# Linux / macOS:
 cp .env.example .env
+
+# Windows (PowerShell):
+Copy-Item .env.example .env
 ```
 Update PostgreSQL connection settings in `.env`:
 ```env
 DATABASE_URL=postgresql://postgres:your_password@localhost:5432/blood_glucose_tracker_db
 ```
 
-### 3. Database Initialization
+### 5. Database Initialization
 ```bash
 # Provision database
 npm run db:create
@@ -155,27 +176,30 @@ npm run db:create
 # Run versioned migrations (001, 002, 003)
 npm run migrate
 
-# (Optional) Seed realistic demo dataset (104 readings across 3 months)
+# (Optional) Seed realistic demo dataset (104 readings across 2 months: October & November 2026)
 npm run seed
 
 # Verify database schema and constraints
 npm run db:verify
 ```
 
-### 4. Running Locally
+### 6. Running Locally
 ```bash
-# Install dependencies
-npm install
-npm --prefix server install
-npm --prefix client install
-
-# Start backend (port 5000) and frontend (port 5173) concurrently
+# Option A: Start backend and frontend concurrently in a single terminal
 npm run dev
+
+# Option B: Run in separate terminals (Recommended alternative)
+# Terminal 1: Backend API (port 5000)
+npm run server
+
+# Terminal 2: Frontend Client (port 5173)
+npm run client
 ```
 
-- Frontend: `http://localhost:5173`
-- Backend API: `http://localhost:5000`
-- Demo Patient: `demo@sweetyapp.local` / `DemoPassword123!`
+- **Frontend Client**: `http://localhost:5173`
+- **Backend API**: `http://localhost:5000`
+- **Demo Account**: `demo@sweetyapp.local` / `DemoPassword123!` (contains 104 pre-seeded clinical readings across October and November 2026)
+- **New Patient Registration**: Visitors can also click **"Create an Account"** on the Sign In page to register a new user account with strict multi-user data isolation. New accounts initialize with an empty dashboard (0 readings).
 
 ---
 
@@ -184,18 +208,18 @@ npm run dev
 The repository features a 100% automated test suite across backend and frontend:
 
 ```bash
-# Run backend integration & E2E tests (96 tests)
+# Run backend integration & E2E tests (98 tests)
 npm run test:server
 
 # Run frontend clinical & responsive UI tests (21 tests)
 npm run test:client
 
-# Run complete monorepo suite (117 tests)
+# Run complete monorepo suite (119 tests)
 npm test
 ```
 
 ### Test Breakdown:
-- **Authentication & Security** (`server/tests/auth.test.js` - 26 tests): CSRF verification, rate limiting, JWT lifecycle, password hashing, and CORS enforcement.
+- **Authentication & Security** (`server/tests/auth.test.js` - 28 tests): CSRF verification, rate limiting, JWT lifecycle, password hashing, and CORS enforcement.
 - **Database Layer** (`server/tests/db.test.js` - 13 tests): Connection pooling, SSL settings, constraints, and migration verification.
 - **Reading CRUD & Concurrency** (`server/tests/readings.test.js` - 28 tests): Range limits, dual-date advisory locking, duplicate slot prevention, and pagination.
 - **Reporting Engine** (`server/tests/reports.test.js` - 19 tests): Daily, MTD, Monthly, Custom Range aggregations, and multi-tenant isolation.
@@ -296,6 +320,28 @@ Response:
    - Advisory locking (`pg_advisory_xact_lock`) eliminates race conditions during simultaneous reading submissions.
 6. **Rate Limiting**:
    - Strict rate limiting on authentication routes (`/api/auth/login`, `/api/auth/register`) preventing brute-force attacks.
+
+---
+
+## Notes
+
+### Assumptions
+1. **Standardized Clinical Time Slots**: Blood glucose logging is structured around 4 standard daily clinical slots (`Morning fasting`, `After breakfast`, `After lunch`, and `After dinner`). Each slot allows at most 1 reading per calendar day per patient, with an invariant maximum of 4 readings per day, enforced at both the database schema level (`uq_user_date_slot`) and via transactional advisory locking (`pg_advisory_xact_lock`).
+2. **Clinical Glucose Target Range**: In accordance with American Diabetes Association (ADA) clinical guidelines, target thresholds are established as: `Hypoglycemia / Low` (< 70 mg/dL), `In Target / Normal` (70–140 mg/dL), `Elevated` (141–180 mg/dL), and `High` (> 180 mg/dL).
+3. **Timezone Awareness (`APP_TIMEZONE`)**: Calendar day boundaries, daily limits, and future-date validations are evaluated against the configured application timezone (defaulting to `Asia/Kolkata` or local system time), preventing client-side clock drift from bypassing daily boundaries.
+4. **Monolithic Production Architecture**: In production mode (`NODE_ENV=production`), the Express backend serves compiled Vite static assets (`client/dist`) and handles client-side routing fallbacks from the same origin. This eliminates cross-origin CORS overhead and simplifies cloud hosting.
+5. **Stateless JWT Sessions with Server-Side Revocation**: Authentication uses cryptographically signed `HttpOnly`, `SameSite=Strict`, `Secure` session cookies combined with a database `token_version` on the `users` table. This provides stateless token performance while enabling instantaneous global logout and token revocation without requiring an external Redis store.
+
+### Known Limitations
+1. **Single Application Timezone**: The system evaluates dates against a global `APP_TIMEZONE` environment setting rather than per-user dynamic timezones.
+2. **Fixed Daily Time Slots**: The 4 clinical slots are standardized across the platform; ad-hoc or user-defined custom slot categories (e.g. "Bedtime snack", "Post-exercise") are not currently user-configurable.
+3. **Email Verification & Password Reset**: Automated email delivery for email verification and self-service password reset is not included and requires integration with a verified SMTP or transactional email provider (e.g. SendGrid, AWS SES).
+
+### Future Improvements
+1. **Direct Clinical Export**: Generate downloadable, clinician-ready reports in PDF, CSV, and HL7/FHIR formats for direct sharing with healthcare providers.
+2. **Continuous Glucose Monitor (CGM) Integration**: Webhook and OAuth integration with CGM hardware ecosystems (e.g., Dexcom, Abbott FreeStyle Libre) for automated streaming of real-time sensor glucose data.
+3. **Medication & Nutrition Correlation**: Log carbohydrate intake, meals, and insulin dosages alongside glucose readings to provide correlative analytics and insulin sensitivity insights.
+4. **Role-Based Provider Portal**: Multi-tenant role separation allowing endocrinologists, physicians, and caregivers to monitor assigned patient cohorts with read-only clinical access.
 
 ---
 

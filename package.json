@@ -5,7 +5,7 @@
   "scripts": {
     "start": "node server/src/server.js",
     "build": "npm --prefix client run build",
-    "install:all": "npm --prefix server install && npm --prefix client install",
+    "install:all": "npm install && npm --prefix server install && npm --prefix client install",
     "server": "npm --prefix server run dev",
     "client": "npm --prefix client run dev",
     "dev": "concurrently \"npm --prefix server run dev\" \"npm --prefix client run dev\"",
@@ -27,5 +27,8 @@
     "httponly-cookies"
   ],
   "author": "chandri02 <chandrikamp04@gmail.com>",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
 }
