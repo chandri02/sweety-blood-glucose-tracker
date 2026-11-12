@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added - Phase 4: Secure Authentication & Authorization (`feature/secure-authentication`)
+- Secure registration (`POST /api/auth/register`) with input validation, password complexity enforcement, duplicate email check, and password hashing (`bcryptjs` 12 salt rounds).
+- Secure login (`POST /api/auth/login`) with credential verification and brute-force rate limiting (`express-rate-limit`).
+- Secure logout (`POST /api/auth/logout`) with cookie clearing and server-side token invalidation via `token_version`.
+- Current user profile endpoint (`GET /api/auth/me`) requiring valid session cookie.
+- Cryptographically signed HMAC-SHA256 anti-CSRF token architecture (`csrf.util.js` & `csrfProtection` middleware) preventing cookie injection or cross-domain forgery attacks.
+- Strict CORS configuration supporting whitelisted client origin with credentials and `PATCH` method support.
+- RFC 5322 email validation rejecting consecutive domain dots, invalid TLDs, and malformed structures.
+- Secure session storage via signed, HttpOnly, SameSite, Secure cookies (`sweety_session`).
+- Migration `003_add_user_token_version.sql` to support server-side token revocation without external session stores.
+- Centralized error handling (`error.middleware.js`) and 404 handler (`notFoundHandler`) preventing credential and stack trace leakage.
+- Security headers with Helmet.
+- Production and staging environment guards enforcing strict presence of `COOKIE_SECRET`, `JWT_SECRET`, and `CSRF_SECRET`.
+- Documented migration 003 rollback behavior, token resurrection risks, and recommended JWT key rotation procedures in `docs/database-design.md` and migration SQL.
+- Comprehensive automated integration test suite (`server/tests/auth.test.js`) with 26 tests covering registration, login, logout, session verification, tampered tokens, CSRF HMAC enforcement, CORS origin rejection, email validation matrix, rate limiting, and production/staging secret guards.
+
 ### Added - Phase 3: PostgreSQL Database Schema & Migration Architecture
 - Dedicated PostgreSQL database initialization script (`server/database/create-db.js`) creating `blood_glucose_tracker_db`.
 - Migration engine (`server/database/migrate.js`) with transactional up/down execution and `schema_migrations` tracking.

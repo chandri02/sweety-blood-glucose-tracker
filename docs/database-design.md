@@ -98,4 +98,21 @@ CREATE INDEX idx_readings_user_slot ON readings(user_id, reading_date, time_slot
 5. **Future Date Validation**:
    - Per requirements, future-date checks are handled explicitly in the backend application layer against the user/server timezone to prevent database clock drift issues and allow clean validation messages.
 6. **Maximum 4 Readings Per Day Concurrency Guard**:
-   - An explicit database transaction locking mechanism (`SELECT count(*) FROM readings WHERE user_id = $1 AND reading_date = $2 FOR UPDATE`) or table lock prevents race conditions from exceeding the 4 readings limit.
+   - An explicit database transaction locking mechanism (`pg_advisory_xact_lock` or row-level locking) prevents race conditions from exceeding the 4 readings limit.
+
+---
+
+## Migration 003: Token Revocation & Rollback Considerations
+
+Migration `003_add_user_token_version.sql` adds `token_version INTEGER NOT NULL DEFAULT 1` to `users`.
+
+### Critical Operational Considerations:
+1. **Rollback Behavior**:
+   - Rolling back `003_add_user_token_version.down.sql` drops the `token_version` column (`ALTER TABLE users DROP COLUMN IF EXISTS token_version;`).
+   - This removes the server-side revocation tracking state for all users.
+2. **Potential Token Resurrection Risk**:
+   - If migration 003 is rolled back and subsequently reapplied on a live database, all users will be re-initialized with `token_version = 1`.
+   - Any previously revoked JWT token with `tokenVersion: 1` that has not yet reached its expiration timestamp (`exp`) would become valid again.
+3. **Recommended Production Mitigation**:
+   - In production or staging environments, if an operational rollback of migration 003 is ever performed, **JWT signing-key rotation (`JWT_SECRET`) must be executed simultaneously**.
+   - Rotating `JWT_SECRET` immediately invalidates all previously issued JWT tokens by breaking cryptographic signature verification, preventing any resurrected session vulnerabilities.
