@@ -19,15 +19,15 @@ This document tracks the end-to-end development phases, feature branches, pull r
 | **Phase 8: Complete Responsive UI & Modals** | `feature/responsive-ui` | PR #6 | Completed | Healthcare design system polish, responsive layouts (375px–1440px), accessible modal workflows, toast notification system, loading skeletons, error boundaries, 107 automated tests |
 | **Phase 9: Automated End-to-End Tests & Hardening** | `main` | Direct | Completed | Comprehensive E2E test suite (user lifecycle, concurrency, duplicate slot locking, SQL injection neutralization, CSRF token dynamic refresh), 117 automated tests |
 | **Phase 10: Documentation & Final Delivery** | `main` | Direct | Completed | Production deployment runbook, production static serving, `.env.production.example`, architecture diagrams, API reference, complete README |
-| **Feature: Multi-User Registration & Authentication** | `feature/user-registration` | PR #7 | Completed | Full Registration UI, password confirmation match validator, auto-authentication session, isolated empty dashboard for new users, 119 automated tests |
+| **Feature: Multi-User Registration & Authentication** | `main` | Direct (PR #7 Closed) | Completed | Full Registration UI, password confirmation match validator, auto-authentication session, isolated empty dashboard for new users, safe PostgreSQL 23505 race condition handling, email preservation on mode switch, 119 automated tests |
 
 ---
 
 ## Current Status
-- **Active Branch**: `feature/user-registration`
-- **Current Phase**: **Multi-User Registration & Authentication (Completed)**
-- **Pull Request Status**: **PR #7 Open** (Awaiting repository owner review and approval)
-- **Next Step**: Review and merge PR #7 into `main`
+- **Active Branch**: `main` (in sync with `origin/main`)
+- **Current Phase**: **Multi-User Registration & Authentication (Completed & Deployed)**
+- **Pull Request Status**: **PR #7 Closed without merge**; verified commits merged cleanly into `main` and pushed directly to `origin/main`
+- **Next Step**: Monitor Render Auto-Deploy execution
 - **Test Status**: All 119 automated tests passing (98 backend integration + 21 frontend unit tests) + Vite production build clean
 - **Database Integrity**: All 104 original seeded readings intact across October and November 2026
-- **Blockers**: None. Awaiting owner review of PR #7.
+- **Blockers**: None. Live on `main`.

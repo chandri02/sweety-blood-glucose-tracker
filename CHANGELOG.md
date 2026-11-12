@@ -7,19 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added - Feature: Multi-User Registration & Authentication (`feature/user-registration`)
+### Added - Feature: Multi-User Registration & Authentication (`main`)
 - **Frontend Registration Interface**:
   - Interactive mode switching on `LoginPage.jsx` between "Sign In" and "Create Account".
   - Registration form with fields for Full Name, Email Address, Password, and Confirm Password.
   - Client-side validation: minimum name length (2 chars), email structure, password complexity (8+ chars, uppercase, lowercase, number, symbol), and password confirmation matching.
   - Automatic session initialization upon registration with welcome toast notification.
   - Preserved prominent Demo Account credentials callout on the Sign In view.
+  - Email field preservation during mode switching so users do not have to retype email.
+  - Contextual action link on duplicate email error allowing 1-click switch to Sign In with the entered email.
 - **Backend Registration API Hardening**:
   - Enhanced `validateRegisterPayload` in `server/src/validators/auth.validator.js` to strictly enforce that `password` and `confirmPassword` match when provided.
+  - Added PostgreSQL error code `23505` catch handler in `auth.service.js` to guarantee consistent `HTTP 409 Conflict` under concurrent duplicate registration attempts.
   - Validated multi-user data isolation: newly registered users start with a clean empty state (0 readings) while demo account records remain isolated.
 - **Automated Testing Suite**:
   - Added 2 new backend integration tests in `server/tests/auth.test.js` asserting password mismatch rejection (400) and multi-user reading history isolation.
-  - Monorepo test suite now executes **119 automated tests** (98 backend + 21 frontend) with 100% pass rate.
+  - Monorepo test suite executes **119 automated tests** (98 backend + 21 frontend) with 100% pass rate.
 
 ### Added - Phase 10: Documentation & Final Production Delivery (`main`)
 - **Production Static Asset Serving**:
