@@ -11,6 +11,7 @@ dotenv.config({ path: path.resolve(__dirname, '../.env') });
 const { csrfProtection } = require('./middleware/csrf.middleware');
 const { errorHandler, notFoundHandler } = require('./middleware/error.middleware');
 const authRoutes = require('./routes/auth.routes');
+const readingRoutes = require('./routes/reading.routes');
 
 const app = express();
 
@@ -73,6 +74,7 @@ app.get('/api/health', (req, res) => {
 
 // Mount Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/readings', readingRoutes);
 
 // Fallback handlers
 app.use(notFoundHandler);

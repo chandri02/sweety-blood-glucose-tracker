@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added - Phase 5: Glucose Reading Management (CRUD) (`feature/reading-crud`)
+- Reading creation endpoint (`POST /api/readings`) with input validation, future-date checks, clinical range enforcement (40–600 mg/dL), duplicate slot detection, and transaction-level advisory locking (`pg_advisory_xact_lock`) enforcing maximum 4 readings per day.
+- Reading retrieval endpoint (`GET /api/readings`) with pagination (`page`, `limit`), date-range filtering (`startDate`, `endDate`), and time-slot filtering (`timeSlot`), ordered chronologically with newest first.
+- Single reading retrieval (`GET /api/readings/:id`) with strict user data isolation (returns 404 for unauthorized cross-user access).
+- Reading update endpoint (`PUT /api/readings/:id`) with validation, slot conflict checks, and cross-user isolation.
+- Reading deletion endpoint (`DELETE /api/readings/:id`) with strict multi-tenant isolation.
+- Repository layer (`reading.repository.js`) utilizing parameterized queries, atomic transactions, and row-level locking.
+- Validation layer (`reading.validator.js`) ensuring valid calendar dates, UUID format, clinical value ranges, and time slot enum membership.
+- Comprehensive automated integration test suite (`server/tests/readings.test.js`) with 27 tests covering authentication guards, CSRF enforcement, validation matrix, CRUD operations, concurrency limits, pagination, and multi-tenant isolation.
+
 ### Added - Phase 4: Secure Authentication & Authorization (`feature/secure-authentication`)
 - Secure registration (`POST /api/auth/register`) with input validation, password complexity enforcement, duplicate email check, and password hashing (`bcryptjs` 12 salt rounds).
 - Secure login (`POST /api/auth/login`) with credential verification and brute-force rate limiting (`express-rate-limit`).
