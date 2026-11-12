@@ -3,6 +3,7 @@ const helmet = require('helmet');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const path = require('path');
+const fs = require('fs');
 const dotenv = require('dotenv');
 
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
@@ -77,6 +78,18 @@ app.get('/api/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/readings', readingRoutes);
 app.use('/api/reports', reportRoutes);
+
+// Serve static client assets in production if client/dist exists
+const clientDistPath = path.resolve(__dirname, '../../client/dist');
+if (process.env.NODE_ENV === 'production' && fs.existsSync(clientDistPath)) {
+  app.use(express.static(clientDistPath));
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api')) {
+      return next();
+    }
+    res.sendFile(path.join(clientDistPath, 'index.html'));
+  });
+}
 
 // Fallback handlers
 app.use(notFoundHandler);

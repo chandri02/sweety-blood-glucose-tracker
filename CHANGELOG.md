@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added - Phase 10: Documentation & Final Production Delivery (`main`)
+- **Production Static Asset Serving**:
+  - Configured `server/src/app.js` to serve compiled Vite frontend assets (`client/dist`) and index fallback in production environments when `NODE_ENV === 'production'`, enabling unified monolithic full-stack deployments.
+- **Production Environment Template (`.env.production.example`)**:
+  - Added dedicated production environment configuration template with SSL database directives, mandatory 64-char secret generation guidelines, and timezone declarations.
+- **Root Build Script (`package.json`)**:
+  - Added `"build": "npm --prefix client run build"` to root `package.json` for streamlined single-command deployment pipelines.
+- **Comprehensive Production Documentation (`README.md`)**:
+  - Complete architectural diagrams, multi-platform deployment runbooks (unified VPS/container vs. decoupled frontend/backend), 117-test verification breakdown, REST API reference, and security architecture specifications.
+
 ### Added - Phase 9: Automated End-to-End Tests & Final Hardening (`main`)
 - **Automated E2E Integration Test Suite (`server/tests/e2e.test.js`)**:
   - Full user registration, login, profile check, and logout lifecycle.
