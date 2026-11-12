@@ -1,5 +1,30 @@
 const EMAIL_REGEX = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
 
+function validateEmail(email) {
+  if (!email || typeof email !== 'string') {
+    return 'A valid email address is required';
+  }
+  const trimmed = email.trim();
+  if (trimmed.length > 255) {
+    return 'Email address cannot exceed 255 characters';
+  }
+  if (!EMAIL_REGEX.test(trimmed)) {
+    return 'A valid email address is required';
+  }
+
+  const atIndex = trimmed.indexOf('@');
+  const domain = trimmed.substring(atIndex + 1);
+
+  if (domain.includes('..')) {
+    return 'Email address domain cannot contain consecutive dots';
+  }
+  if (domain.startsWith('.') || domain.endsWith('.')) {
+    return 'Email address domain cannot start or end with a dot';
+  }
+
+  return null;
+}
+
 function validatePasswordStrength(password) {
   if (typeof password !== 'string') {
     return 'Password must be a string';
@@ -36,10 +61,9 @@ function validateRegisterPayload(req, res, next) {
     errors.push('Name cannot exceed 100 characters');
   }
 
-  if (!email || typeof email !== 'string' || !EMAIL_REGEX.test(email.trim())) {
-    errors.push('A valid email address is required');
-  } else if (email.trim().length > 255) {
-    errors.push('Email address cannot exceed 255 characters');
+  const emailError = validateEmail(email);
+  if (emailError) {
+    errors.push(emailError);
   }
 
   const passwordError = validatePasswordStrength(password);
@@ -57,7 +81,6 @@ function validateRegisterPayload(req, res, next) {
     });
   }
 
-  // Normalize inputs
   req.body.name = name.trim();
   req.body.email = email.trim().toLowerCase();
 
@@ -69,8 +92,9 @@ function validateLoginPayload(req, res, next) {
 
   const errors = [];
 
-  if (!email || typeof email !== 'string' || !EMAIL_REGEX.test(email.trim())) {
-    errors.push('A valid email address is required');
+  const emailError = validateEmail(email);
+  if (emailError) {
+    errors.push(emailError);
   }
 
   if (!password || typeof password !== 'string') {
@@ -93,6 +117,8 @@ function validateLoginPayload(req, res, next) {
 }
 
 module.exports = {
+  EMAIL_REGEX,
+  validateEmail,
   validateRegisterPayload,
   validateLoginPayload,
   validatePasswordStrength,

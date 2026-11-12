@@ -12,12 +12,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Secure login (`POST /api/auth/login`) with credential verification and brute-force rate limiting (`express-rate-limit`).
 - Secure logout (`POST /api/auth/logout`) with cookie clearing and server-side token invalidation via `token_version`.
 - Current user profile endpoint (`GET /api/auth/me`) requiring valid session cookie.
-- Anti-CSRF token issuance (`GET /api/auth/csrf-token`) and double-submit validation middleware (`csrfProtection`).
+- Cryptographically signed HMAC-SHA256 anti-CSRF token architecture (`csrf.util.js` & `csrfProtection` middleware) preventing cookie injection or cross-domain forgery attacks.
+- Strict CORS configuration supporting whitelisted client origin with credentials and `PATCH` method support.
+- RFC 5322 email validation rejecting consecutive domain dots, invalid TLDs, and malformed structures.
 - Secure session storage via signed, HttpOnly, SameSite, Secure cookies (`sweety_session`).
 - Migration `003_add_user_token_version.sql` to support server-side token revocation without external session stores.
 - Centralized error handling (`error.middleware.js`) and 404 handler (`notFoundHandler`) preventing credential and stack trace leakage.
-- Security headers with Helmet and CORS configuration for client origin and credentials.
-- Automated integration test suite (`server/tests/auth.test.js`) with 14 tests covering registration, login, logout, session verification, tampered token rejection, and CSRF enforcement.
+- Security headers with Helmet.
+- Comprehensive automated integration test suite (`server/tests/auth.test.js`) with 23 tests covering registration, login, logout, session verification, tampered tokens, CSRF HMAC enforcement, CORS origin rejection, email validation matrix, and rate limiting.
 
 ### Added - Phase 3: PostgreSQL Database Schema & Migration Architecture
 - Dedicated PostgreSQL database initialization script (`server/database/create-db.js`) creating `blood_glucose_tracker_db`.

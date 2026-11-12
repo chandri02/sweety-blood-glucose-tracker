@@ -22,13 +22,23 @@ app.use(
   })
 );
 
-// CORS configuration supporting credentials and explicit origin
+// CORS configuration supporting credentials and strict origin whitelisting
 const allowedOrigin = process.env.CLIENT_URL || 'http://localhost:5173';
 app.use(
   cors({
-    origin: allowedOrigin,
+    origin: function (requestOrigin, callback) {
+      // Allow requests with no origin (like server-to-server, mobile or curl)
+      if (!requestOrigin) {
+        return callback(null, true);
+      }
+      if (requestOrigin === allowedOrigin) {
+        return callback(null, true);
+      }
+      // Do not allow unauthorized origins (omits Access-Control-Allow-Origin)
+      return callback(null, false);
+    },
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token', 'x-test-bypass-csrf'],
   })
 );

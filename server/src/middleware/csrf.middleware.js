@@ -1,16 +1,23 @@
 const { CSRF_COOKIE_NAME } = require('../constants/auth.constants');
-const { verifyCsrfTokens, generateCsrfToken, getCsrfCookieOptions } = require('../utils/csrf.util');
+const {
+  verifyCsrfTokens,
+  generateCsrfToken,
+  verifyCsrfTokenSignature,
+  getCsrfCookieOptions,
+} = require('../utils/csrf.util');
 
 const STATE_CHANGING_METHODS = new Set(['POST', 'PUT', 'DELETE', 'PATCH']);
 
 function csrfProtection(req, res, next) {
-  // Ensure every response has a CSRF cookie if not present
-  if (!req.cookies || !req.cookies[CSRF_COOKIE_NAME]) {
+  const existingCookieToken = req.cookies?.[CSRF_COOKIE_NAME];
+
+  // Ensure every response has a valid signed CSRF cookie
+  if (!existingCookieToken || !verifyCsrfTokenSignature(existingCookieToken)) {
     const newToken = generateCsrfToken();
     res.cookie(CSRF_COOKIE_NAME, newToken, getCsrfCookieOptions());
     req.csrfToken = newToken;
   } else {
-    req.csrfToken = req.cookies[CSRF_COOKIE_NAME];
+    req.csrfToken = existingCookieToken;
   }
 
   // Safe HTTP methods do not mutate state
@@ -18,7 +25,7 @@ function csrfProtection(req, res, next) {
     return next();
   }
 
-  // Optional test bypass for isolated internal unit tests
+  // Optional test bypass for isolated internal unit tests ONLY in test environment
   if (process.env.NODE_ENV === 'test' && req.headers['x-test-bypass-csrf'] === 'true') {
     return next();
   }
@@ -40,7 +47,7 @@ function csrfProtection(req, res, next) {
     return res.status(403).json({
       error: {
         code: 'CSRF_INVALID',
-        message: 'Invalid CSRF token.',
+        message: 'Invalid or forged CSRF token.',
       },
     });
   }
