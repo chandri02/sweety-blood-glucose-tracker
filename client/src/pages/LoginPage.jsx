@@ -23,6 +23,11 @@ export default function LoginPage() {
 
   function switchMode(newMode) {
     setErrorMsg('');
+    if (newMode === 'login' && regEmail) {
+      setLoginEmail(regEmail);
+    } else if (newMode === 'register' && loginEmail && loginEmail !== 'demo@sweetyapp.local') {
+      setRegEmail(loginEmail);
+    }
     setMode(newMode);
   }
 
@@ -118,7 +123,19 @@ export default function LoginPage() {
 
         {errorMsg && (
           <div className="alert alert-error" role="alert" style={{ marginBottom: '1rem' }}>
-            {errorMsg}
+            <div>{errorMsg}</div>
+            {mode === 'register' && errorMsg.includes('already exists') && (
+              <div style={{ marginTop: '0.4rem' }}>
+                <button
+                  type="button"
+                  className="btn-auth-switch"
+                  onClick={() => switchMode('login')}
+                  style={{ color: '#0369a1', fontWeight: 600 }}
+                >
+                  Sign in with this email instead →
+                </button>
+              </div>
+            )}
           </div>
         )}
 

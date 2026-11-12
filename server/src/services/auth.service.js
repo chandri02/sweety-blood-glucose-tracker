@@ -20,25 +20,32 @@ async function register({ name, email, password }) {
   const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS || BCRYPT_SALT_ROUNDS, 10);
   const passwordHash = await bcrypt.hash(password, saltRounds);
 
-  const newUser = await userRepository.create({
-    name,
-    email,
-    passwordHash,
-  });
+  try {
+    const newUser = await userRepository.create({
+      name,
+      email,
+      passwordHash,
+    });
 
-  const token = generateToken({
-    userId: newUser.id,
-    tokenVersion: newUser.token_version,
-  });
+    const token = generateToken({
+      userId: newUser.id,
+      tokenVersion: newUser.token_version,
+    });
 
-  return {
-    user: {
-      id: newUser.id,
-      name: newUser.name,
-      email: newUser.email,
-    },
-    token,
-  };
+    return {
+      user: {
+        id: newUser.id,
+        name: newUser.name,
+        email: newUser.email,
+      },
+      token,
+    };
+  } catch (err) {
+    if (err.code === '23505') {
+      throw new AuthError('An account with this email address already exists', 409, 'EMAIL_EXISTS');
+    }
+    throw err;
+  }
 }
 
 async function login({ email, password }) {
