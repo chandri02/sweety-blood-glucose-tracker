@@ -10,6 +10,10 @@ const apiClient = axios.create({
   },
 });
 
+export function setCsrfToken(token) {
+  csrfTokenCache = token;
+}
+
 export async function fetchCsrfToken() {
   try {
     const res = await axios.get('/api/auth/csrf-token', { withCredentials: true });
@@ -33,5 +37,15 @@ apiClient.interceptors.request.use(async (config) => {
   }
   return config;
 });
+
+apiClient.interceptors.response.use(
+  (response) => {
+    if (response?.data?.csrfToken) {
+      csrfTokenCache = response.data.csrfToken;
+    }
+    return response;
+  },
+  (error) => Promise.reject(error)
+);
 
 export default apiClient;

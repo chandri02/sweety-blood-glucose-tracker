@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added - Phase 9: Automated End-to-End Tests & Final Hardening (`main`)
+- **Automated E2E Integration Test Suite (`server/tests/e2e.test.js`)**:
+  - Full user registration, login, profile check, and logout lifecycle.
+  - Glucose reading creation across all 4 time slots with validation.
+  - Concurrency & duplicate slot advisory locking enforcement.
+  - SQL injection neutralization across filters and ID parameters.
+  - Cross-user data isolation and unauthorized reading modification prevention.
+  - Dual-date transactional locks during date updates.
+  - Boundary value tests for clinical glucose readings (min 20, max 600).
+- **CSRF Token Synchronization & Logout Hardening**:
+  - Added dynamic Axios response interceptor in `client/src/api/client.js` to automatically synchronize cached CSRF token with fresh tokens returned in authentication API responses.
+  - Updated `client/src/api/auth.api.js` to store fresh CSRF tokens upon login and clear cached token upon logout.
+  - Guarded `apiLogout()` in `client/src/context/AuthContext.jsx` with error handling to guarantee clean client-side state clearance.
+  - Monorepo test suite now executes 117 automated tests (96 backend integration + 21 frontend unit tests) with 100% pass rate.
+
 ### Added - Phase 8: Complete Responsive UI & Modals (`feature/responsive-ui`)
 - **Healthcare Design System Polish & Responsive Layouts**:
   - Refined clinical color palette, semantic tokens, shadows, and accessible status contrasts meeting WCAG 2.1 AA standards.

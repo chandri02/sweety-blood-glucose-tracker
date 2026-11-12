@@ -41,6 +41,8 @@ export function AuthProvider({ children }) {
   async function logout() {
     try {
       await apiLogout();
+    } catch (err) {
+      console.warn('Logout API warning:', err);
     } finally {
       setUser(null);
     }
