@@ -19,7 +19,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Migration `003_add_user_token_version.sql` to support server-side token revocation without external session stores.
 - Centralized error handling (`error.middleware.js`) and 404 handler (`notFoundHandler`) preventing credential and stack trace leakage.
 - Security headers with Helmet.
-- Comprehensive automated integration test suite (`server/tests/auth.test.js`) with 23 tests covering registration, login, logout, session verification, tampered tokens, CSRF HMAC enforcement, CORS origin rejection, email validation matrix, and rate limiting.
+- Production and staging environment guards enforcing strict presence of `COOKIE_SECRET`, `JWT_SECRET`, and `CSRF_SECRET`.
+- Documented migration 003 rollback behavior, token resurrection risks, and recommended JWT key rotation procedures in `docs/database-design.md` and migration SQL.
+- Comprehensive automated integration test suite (`server/tests/auth.test.js`) with 26 tests covering registration, login, logout, session verification, tampered tokens, CSRF HMAC enforcement, CORS origin rejection, email validation matrix, rate limiting, and production/staging secret guards.
 
 ### Added - Phase 3: PostgreSQL Database Schema & Migration Architecture
 - Dedicated PostgreSQL database initialization script (`server/database/create-db.js`) creating `blood_glucose_tracker_db`.
