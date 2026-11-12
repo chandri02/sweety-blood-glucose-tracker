@@ -7,6 +7,8 @@
     "server": "npm --prefix server run dev",
     "client": "npm --prefix client run dev",
     "dev": "concurrently \"npm --prefix server run dev\" \"npm --prefix client run dev\"",
+    "db:create": "npm --prefix server run db:create",
+    "db:verify": "npm --prefix server run db:verify",
     "migrate": "npm --prefix server run migrate",
     "seed": "npm --prefix server run seed",
     "test:server": "npm --prefix server test",

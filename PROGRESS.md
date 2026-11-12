@@ -9,10 +9,10 @@ This document tracks the end-to-end development phases, feature branches, pull r
 
 | Phase / Feature | Branch | PR # | Merge Status | Key Deliverables |
 | :--- | :--- | :---: | :---: | :--- |
-| **Phase 1: Discovery & Clarification** | `main` | N/A | Approved | Environment audit, technical specification, confirmation of instructions |
-| **Phase 2: Project Setup & Monorepo** | `feature/project-setup` | #1 | Pending Review | Git configuration, monorepo scaffold, templates, `.env.example`, documentation |
-| **Phase 3: Database & Schema** | `feature/database-schema` | TBD | Pending | PostgreSQL schema, `gen_random_uuid()`, migrations, connection pool |
-| **Phase 4: Authentication** | `feature/authentication` | TBD | Pending | HttpOnly cookie auth, CSRF protection, bcrypt hashing, user isolation |
+| **Phase 1: Discovery & Clarification** | `main` | Direct | Approved | Environment audit, technical specification, confirmation of instructions |
+| **Phase 2: Project Setup & Monorepo** | `main` | Direct | Completed | Git configuration, monorepo scaffold, templates, `.env.example`, documentation |
+| **Phase 3: Database & Schema** | `main` | Direct | Completed & Verified | PostgreSQL `blood_glucose_tracker_db`, native `gen_random_uuid()`, migrations 001/002, seed script, 13 automated tests |
+| **Phase 4: Authentication** | `main` | Direct | Pending Approval | HttpOnly cookie auth, CSRF protection, bcrypt hashing, user isolation |
 | **Phase 5: Reading CRUD** | `feature/reading-crud` | TBD | Pending | Full CRUD APIs, parameterized SQL, strict user-ownership enforcement |
 | **Phase 6: Reading Validation & Concurrency** | `feature/reading-validation` | TBD | Pending | Concurrency protection (max 4/day), backend future-date checks, slot uniqueness |
 | **Phase 7: Daily Reports** | `feature/daily-reports` | TBD | Pending | Aggregations (min/max/avg/count), daily endpoint, empty states |
@@ -27,6 +27,7 @@ This document tracks the end-to-end development phases, feature branches, pull r
 ---
 
 ## Current Status
-- **Active Branch**: `feature/project-setup`
-- **Active Task**: Preparing initial project scaffold, documentation, and PR #1.
-- **Blockers**: None.
+- **Active Branch**: `main`
+- **Active Task**: Phase 3 completed & verified (13 automated tests passed; database and seeds operational).
+- **Next Phase**: Phase 4 (Authentication & Authorization).
+- **Blockers**: None. Awaiting owner confirmation to proceed to Phase 4.

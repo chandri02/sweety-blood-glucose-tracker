@@ -77,13 +77,29 @@ Update `.env` with your local PostgreSQL credentials:
 DATABASE_URL=postgresql://postgres:YOUR_PASSWORD@localhost:5432/blood_glucose_tracker_db
 ```
 
-### 3. Database Migration
-Ensure the `blood_glucose_tracker_db` database exists in PostgreSQL, then run migrations:
+### 3. Database Initialization & Migration
+Create the dedicated `blood_glucose_tracker_db` database, apply migrations, and verify schema:
 ```bash
+# Create database (if not already existing)
+npm run db:create
+
+# Run versioned schema migrations
 npm run migrate
+
+# (Optional) Seed realistic demo records across 3 months
+npm run seed
+
+# Verify database tables, constraints, and indexes
+npm run db:verify
 ```
 
-### 4. Running the Application
+### 4. Demo Account Credentials (Development)
+The seed script generates a ready-to-test demo patient:
+- **Email**: `demo@sweetyapp.local`
+- **Password**: `DemoPassword123!`
+- **Sample Data**: 104 readings spanning current month, previous month, and previous year across all 4 time slots.
+
+### 5. Running the Application
 ```bash
 # Install dependencies
 npm install
