@@ -1,14 +1,20 @@
 import React, { useState } from 'react';
 import GlucoseTrendChart from './GlucoseTrendChart';
 import TimeSlotComparisonChart from './TimeSlotComparisonChart';
+import { SkeletonChart } from '../common/Skeleton';
 
 export default function DashboardChartSection({
   reportType,
   reportData,
   loading = false,
+  onOpenAddModal,
 }) {
   const [chartView, setChartView] = useState('trend'); // 'trend' | 'slots'
   const [showTargetZones, setShowTargetZones] = useState(true);
+
+  if (loading) {
+    return <SkeletonChart />;
+  }
 
   const hasData = reportData && reportData.totalReadings > 0;
 
@@ -51,17 +57,22 @@ export default function DashboardChartSection({
         </div>
       </div>
 
-      {/* Body: Loading / Empty / Chart */}
-      {loading ? (
-        <div className="chart-loading-state">
-          <div className="spinner"></div>
-          <p>Rendering visualization data...</p>
-        </div>
-      ) : !hasData ? (
+      {/* Body: Empty / Chart */}
+      {!hasData ? (
         <div className="chart-empty-placeholder">
           <span className="placeholder-icon" aria-hidden="true">🩸</span>
-          <h4>No glucose readings for this period</h4>
-          <p>Select another date range or log new readings to see your trends.</p>
+          <h4>No glucose readings recorded for this period</h4>
+          <p>Select another date range or log new readings to see your clinical trends.</p>
+          {onOpenAddModal && (
+            <button
+              type="button"
+              className="btn btn-primary btn-sm"
+              onClick={onOpenAddModal}
+              style={{ marginTop: '0.75rem' }}
+            >
+              + Log Reading
+            </button>
+          )}
         </div>
       ) : (
         <div className="chart-content-area">

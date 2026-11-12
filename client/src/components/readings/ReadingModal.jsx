@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Modal from '../common/Modal';
 import { TIME_SLOTS, getGlucoseStatus } from '../../utils/clinical';
 import { createReading, updateReading } from '../../api/readings.api';
 
@@ -89,132 +90,117 @@ export default function ReadingModal({
   }
 
   return (
-    <div className="modal-backdrop" onClick={onClose} role="dialog" aria-modal="true">
-      <div
-        className="modal-container"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="modal-header">
-          <div className="modal-title-wrap">
-            <span className="modal-icon" aria-hidden="true">🩸</span>
-            <h3 className="modal-title">
-              {isEdit ? 'Edit Blood Glucose Reading' : 'Log Blood Glucose Reading'}
-            </h3>
-          </div>
-          <button
-            type="button"
-            className="modal-close-btn"
-            onClick={onClose}
-            aria-label="Close dialog"
-          >
-            ✕
-          </button>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={isEdit ? 'Edit Blood Glucose Reading' : 'Log Blood Glucose Reading'}
+      icon="🩸"
+      size="md"
+    >
+      {error && (
+        <div className="modal-alert modal-alert-error" role="alert">
+          <span aria-hidden="true">⚠️</span> {error}
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="modal-form">
+        <div className="form-group">
+          <label htmlFor="reading-date-input" className="form-label">
+            Reading Date <span className="required">*</span>
+          </label>
+          <input
+            id="reading-date-input"
+            type="date"
+            data-autofocus="true"
+            className={`form-input ${fieldErrors.reading_date ? 'input-error' : ''}`}
+            value={readingDate}
+            max={today}
+            onChange={(e) => setReadingDate(e.target.value)}
+            required
+          />
+          {fieldErrors.reading_date && (
+            <span className="field-error-text">{fieldErrors.reading_date}</span>
+          )}
         </div>
 
-        {error && (
-          <div className="modal-alert modal-alert-error" role="alert">
-            <span aria-hidden="true">⚠️</span> {error}
-          </div>
-        )}
+        <div className="form-group">
+          <label htmlFor="reading-slot-select" className="form-label">
+            Clinical Time Slot <span className="required">*</span>
+          </label>
+          <select
+            id="reading-slot-select"
+            className={`form-input ${fieldErrors.time_slot ? 'input-error' : ''}`}
+            value={timeSlot}
+            onChange={(e) => setTimeSlot(e.target.value)}
+            required
+          >
+            {TIME_SLOTS.map((slot) => (
+              <option key={slot} value={slot}>
+                {slot}
+              </option>
+            ))}
+          </select>
+          {fieldErrors.time_slot && (
+            <span className="field-error-text">{fieldErrors.time_slot}</span>
+          )}
+          <small className="form-hint">
+            Maximum 4 readings per day (one per clinical time slot).
+          </small>
+        </div>
 
-        <form onSubmit={handleSubmit} className="modal-form">
-          <div className="form-group">
-            <label htmlFor="reading-date-input" className="form-label">
-              Reading Date <span className="required">*</span>
-            </label>
+        <div className="form-group">
+          <label htmlFor="reading-glucose-input" className="form-label">
+            Glucose Value (mg/dL) <span className="required">*</span>
+          </label>
+          <div className="glucose-input-wrapper">
             <input
-              id="reading-date-input"
-              type="date"
-              className={`form-input ${fieldErrors.reading_date ? 'input-error' : ''}`}
-              value={readingDate}
-              max={today}
-              onChange={(e) => setReadingDate(e.target.value)}
+              id="reading-glucose-input"
+              type="number"
+              min="40"
+              max="600"
+              step="1"
+              placeholder="e.g. 105"
+              className={`form-input ${fieldErrors.glucose_value ? 'input-error' : ''}`}
+              value={glucoseValue}
+              onChange={(e) => setGlucoseValue(e.target.value)}
               required
             />
-            {fieldErrors.reading_date && (
-              <span className="field-error-text">{fieldErrors.reading_date}</span>
-            )}
+            <span className="input-unit">mg/dL</span>
           </div>
+          {fieldErrors.glucose_value && (
+            <span className="field-error-text">{fieldErrors.glucose_value}</span>
+          )}
 
-          <div className="form-group">
-            <label htmlFor="reading-slot-select" className="form-label">
-              Clinical Time Slot <span className="required">*</span>
-            </label>
-            <select
-              id="reading-slot-select"
-              className={`form-input ${fieldErrors.time_slot ? 'input-error' : ''}`}
-              value={timeSlot}
-              onChange={(e) => setTimeSlot(e.target.value)}
-              required
-            >
-              {TIME_SLOTS.map((slot) => (
-                <option key={slot} value={slot}>
-                  {slot}
-                </option>
-              ))}
-            </select>
-            {fieldErrors.time_slot && (
-              <span className="field-error-text">{fieldErrors.time_slot}</span>
-            )}
-            <small className="form-hint">
-              Maximum 4 readings per day (one per clinical time slot).
-            </small>
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="reading-glucose-input" className="form-label">
-              Glucose Value (mg/dL) <span className="required">*</span>
-            </label>
-            <div className="glucose-input-wrapper">
-              <input
-                id="reading-glucose-input"
-                type="number"
-                min="40"
-                max="600"
-                step="1"
-                placeholder="e.g. 105"
-                className={`form-input ${fieldErrors.glucose_value ? 'input-error' : ''}`}
-                value={glucoseValue}
-                onChange={(e) => setGlucoseValue(e.target.value)}
-                required
-              />
-              <span className="input-unit">mg/dL</span>
+          {/* Live Clinical Status Preview */}
+          {currentStatus && (
+            <div className="live-status-preview">
+              <span className="preview-label">Category Preview:</span>
+              <span className={`status-badge ${currentStatus.className}`}>
+                {currentStatus.label}
+              </span>
+              <span className="preview-desc">({currentStatus.description})</span>
             </div>
-            {fieldErrors.glucose_value && (
-              <span className="field-error-text">{fieldErrors.glucose_value}</span>
-            )}
+          )}
+        </div>
 
-            {/* Live Clinical Status Preview */}
-            {currentStatus && (
-              <div className="live-status-preview">
-                <span className="preview-label">Category Preview:</span>
-                <span className={`status-badge ${currentStatus.className}`}>
-                  {currentStatus.label}
-                </span>
-                <span className="preview-desc">({currentStatus.description})</span>
-              </div>
-            )}
-          </div>
-
-          <div className="modal-actions">
-            <button
-              type="button"
-              className="btn btn-outline"
-              onClick={onClose}
-              disabled={loading}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="btn btn-primary"
-              disabled={loading}
-            >
-              {loading ? 'Saving...' : isEdit ? 'Update Reading' : 'Save Reading'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        <div className="modal-actions">
+          <button
+            type="button"
+            className="btn btn-outline"
+            onClick={onClose}
+            disabled={loading}
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            className="btn btn-primary"
+            disabled={loading}
+          >
+            {loading ? 'Saving...' : isEdit ? 'Update Reading' : 'Save Reading'}
+          </button>
+        </div>
+      </form>
+    </Modal>
   );
 }

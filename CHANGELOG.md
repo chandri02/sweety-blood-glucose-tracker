@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added - Phase 8: Complete Responsive UI & Modals (`feature/responsive-ui`)
+- **Healthcare Design System Polish & Responsive Layouts**:
+  - Refined clinical color palette, semantic tokens, shadows, and accessible status contrasts meeting WCAG 2.1 AA standards.
+  - Multi-screen responsiveness across 375px (mobile), 768px (tablet), 1024px (desktop), and 1440px (wide desktop).
+  - Responsive navigation header (`Navbar.jsx`) with mobile hamburger toggle, collapsible drawer menu, and desktop tab pills.
+  - Responsive metric card grids: 1 column on mobile (< 640px), 2 columns on tablet (768px–1023px), 4 columns on desktop (1024px+).
+  - High-contrast `:focus-visible` outlines on all interactive elements for keyboard navigation.
+- **Accessible Modal Workflows (`Modal.jsx`)**:
+  - Reusable accessible dialog component with keyboard focus trapping (`Tab` and `Shift+Tab` cycle inside dialog).
+  - Focus restoration returning focus to previous triggering element on modal dismissal.
+  - `Escape` key dismissal with event stop propagation.
+  - Background body scroll locking (`document.body.style.overflow = 'hidden'`) while open.
+  - Standard ARIA attributes (`role="dialog"`, `aria-modal="true"`, `aria-labelledby`).
+  - Integrated into `ReadingModal.jsx` (Add & Edit) and `DeleteConfirmModal.jsx`.
+- **Reusable Toast Notification System (`ToastContext.jsx` & `ToastContainer.jsx`)**:
+  - Global `useToast()` hook with `toast.success()`, `toast.error()`, `toast.warning()`, and `toast.info()`.
+  - Floating top-right/top-center notification container with auto-dismiss timers, manual dismiss buttons, and accessible `role="status"` / `role="alert"` regions.
+  - Integrated into Dashboard, Reports, and Readings management views for async action feedback.
+- **Loading Skeletons, Interactive Empty States & Error Recovery**:
+  - Animated shimmer skeleton loaders (`Skeleton.jsx`): `SkeletonCardsGrid`, `SkeletonChart`, and `SkeletonTable`.
+  - Interactive empty states with direct call-to-action buttons across all views.
+  - Global and view-level `ErrorBoundary.jsx` catching rendering exceptions with user-friendly clinical error screen and "Try Again" / "Reload Application" recovery buttons.
+  - In-line retry controls on network/API failure alerts.
+- **Automated Frontend Unit Testing (`client/tests/responsive-ui.test.js`)**:
+  - Added 10 new unit tests covering toast state management, modal focus trap cycling logic, Escape key dismissal, and responsive breakpoint invariants (bringing total frontend tests to 21).
+  - Monorepo test suite executes all 107 tests (86 backend integration + 21 frontend unit tests) with 100% pass rate.
+
 ### Added - Phase 7: Charts, Data Visualization & Full Dashboard Integration (`feature/charts-and-visualization`)
 - **Backend Time-Slot Aggregation & Analysis**:
   - Enhanced report repository (`report.repository.js`) with `computeSlotAnalysis()` providing slot-level reading counts, averages, observed ranges (min/max), and `highestAverageSlot` across Daily, MTD, Monthly, and Custom Range periods.
